@@ -1,0 +1,14 @@
+{
+  "name": "oxeymultiplayer",
+  "version": "1.0.0",
+  "description": "multiplayer server for gdevelop",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Oxey405",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.3.0"
+  }
+}
