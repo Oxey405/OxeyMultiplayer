@@ -1,30 +1,9 @@
 # OxeyMultiplayer
-Un serveur multijoueur pour GDevelop fonctionnant avec WebSocket
-A mutliplayer server for GDevelop powered by WebSocket
-# Instructions (en français)
-Voici les instructions d'installations et la documentation en français
-Vous pouvez suivre la vidéo "Comment créer un jeu multijoueur avec GDevelop"
-sur ma chaîne YouTube [Oxey405](https://youtube.com/oxey405).
-## Installer
-Voici les étapes d'installation du serveur.
-Vous devez avoir nodeJS (git optionel) d'installé sur votre ordinateur/serveur
-1. Télécharger le code source du programme sur [github](https://github.com/oxey405/OxeyMutliplayer)
-2. Si vous avez téléchargé le code source sous forme de zip, décompressez le fichier)
-3. Ouvrez le dossier du serveur et ouvrez un terminal dans ce dossier (sur windows : cmd puis cd chemin/vers/le/dossier/du/code)
-4. Dans le terminal, entrez la commande `npm i` pour installer tous les modules NodeJS nécéssaires
-5. Pour lancer le serveur, tapez `npm start`ou `node index.js`. Votre serveur est en ligne sur le port 8080
-## Ajouter des fonctionnalités / Contribuer
-Le code est **open source**, cela veut dire que le code est **disponible gratuitement et visible par tous.**
-Le code étant sous license *MIT*, vous avez le droit de *copier, modifier et redistribuer ce logiciel comme vous le souhaitez.*
-**N'hesitez pas à me créditer si vous utilisez ce logiciel** (voir "comment créditer")
-Si vous souhaitez contribuer au projet, n'hesitez pas ! Il vous faut juste **connaitre le fonctionnement basique de `git` et de `nodeJS`**. Vous trouverez énormément de ressources gratuites en ligne sur ces sujets.
-### Règles pour contribuer :
-1. Formattez votre code (sur vscode clic droit sur le code > "Mettre le document en forme")
-2. Documentez en français puis en anglais en suivant ce format "français -- anglais" sur la **MEME LIGNE**
-3. Vérifiez que votre code **fonctionne correctement** et ne *casse rien de déjà implémenté*
-4. Il est recommandé d'écrire les noms de variables en français
-## Commeent créditer
-Dans votre readme ou les crédits de votre application/jeu mentionnez : "Serveur mutlijoueur : OxeyMutliplayer (github.com/Oxey405/OxeyMutliplayer)" Vous pouvez retirer le lien du texte si lorsque l'on clique sur le texte, la page github du projet s'affiche.
+Un serveur multijoueur pour GDevelop fonctionnant avec WebSocket.
+Documentation en français après celle en anglais.
+A mutliplayer server for GDevelop powered by WebSocket.
+English documentation before the french 
+
 # Instructions (in english)
 Here are the installation instructions and contributions guidelines in english
 This software was made for a youtube video "Comment créer un jeu multijoueur avec GDevelop"
@@ -51,7 +30,33 @@ Wanna contribute ? You just need to **know the basics of `git` and `nodeJS`**. Y
 Dans votre readme ou les crédits de votre application/jeu mentionnez : "Serveur mutlijoueur : OxeyMutliplayer (github.com/Oxey405/OxeyMutliplayer)" Vous pouvez retirer le lien du texte si lorsque l'on clique sur le texte, la page github du projet s'affiche.
 In your readme or in the credits of your app/game, add a line to the credits : "Multiplayer server : OxeyMultiplayer (github.com/Oxey405/OxeyMultiplayer). You can remove the link from the text as long as when you click on the text, it opens the webpage.
 
+# Instructions (en français)
+Voici les instructions d'installations et la documentation en français
+Vous pouvez suivre la vidéo "Comment créer un jeu multijoueur avec GDevelop"
+sur ma chaîne YouTube [Oxey405](https://youtube.com/oxey405).
+## Installer
+Voici les étapes d'installation du serveur.
+Vous devez avoir nodeJS (git optionel) d'installé sur votre ordinateur/serveur
+1. Télécharger le code source du programme sur [github](https://github.com/oxey405/OxeyMutliplayer)
+2. Si vous avez téléchargé le code source sous forme de zip, décompressez le fichier)
+3. Ouvrez le dossier du serveur et ouvrez un terminal dans ce dossier (sur windows : cmd puis cd chemin/vers/le/dossier/du/code)
+4. Dans le terminal, entrez la commande `npm i` pour installer tous les modules NodeJS nécéssaires
+5. Pour lancer le serveur, tapez `npm start`ou `node index.js`. Votre serveur est en ligne sur le port 8080
+## Ajouter des fonctionnalités / Contribuer
+Le code est **open source**, cela veut dire que le code est **disponible gratuitement et visible par tous.**
+Le code étant sous license *MIT*, vous avez le droit de *copier, modifier et redistribuer ce logiciel comme vous le souhaitez.*
+**N'hesitez pas à me créditer si vous utilisez ce logiciel** (voir "comment créditer")
+Si vous souhaitez contribuer au projet, n'hesitez pas ! Il vous faut juste **connaitre le fonctionnement basique de `git` et de `nodeJS`**. Vous trouverez énormément de ressources gratuites en ligne sur ces sujets.
+### Règles pour contribuer :
+1. Formattez votre code (sur vscode clic droit sur le code > "Mettre le document en forme")
+2. Documentez en français puis en anglais en suivant ce format "français -- anglais" sur la **MEME LIGNE**
+3. Vérifiez que votre code **fonctionne correctement** et ne *casse rien de déjà implémenté*
+4. Il est recommandé d'écrire les noms de variables en français
+## Commeent créditer
+Dans votre readme ou les crédits de votre application/jeu mentionnez : "Serveur mutlijoueur : OxeyMutliplayer (github.com/Oxey405/OxeyMutliplayer)" Vous pouvez retirer le lien du texte si lorsque l'on clique sur le texte, la page github du projet s'affiche.
+
 # Vous êtes arrivés à la fin du Readme !
 Félicitations :) !
+
 # You made it to the end of the Readme !
 Good job :) !
