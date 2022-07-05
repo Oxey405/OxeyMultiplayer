@@ -1,7 +1,7 @@
 {
   "name": "oxeymultiplayer",
-  "version": "1.0.0",
-  "description": "multiplayer server for gdevelop",
+  "version": "1.1.0",
+  "description": "multiplayer websocket server for gdevelop or other",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
