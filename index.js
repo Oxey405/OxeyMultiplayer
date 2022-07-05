@@ -8,6 +8,7 @@ const WebSocket = require("ws");
 const crypto = require("crypto");
 const express = require("express");
 const webapp = express();
+webapp.use((req, res) => res.sendFile(INDEX, { root: __dirname }));
 
 webapp.listen(process.env.PORT || 3000, () =>  {
   console.log("webapp démarrée")
@@ -298,7 +299,7 @@ wss.on("close", () => {
 
 let joueursParPartie = 2;
 
-webapp.get("/", (req, res) => {
+webapp.get("/info", (req, res) => {
   res.send(
     `<html>
       <head>
