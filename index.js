@@ -90,9 +90,9 @@ class Partie {
       .substring(0, 16);
   }
 }
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ server: webapp });
 
-console.log("🌐 Serveur en ligne sur le port 8080");
+console.log("🌐 Serveur en ligne sur le port " + process.env.PORT || 3000);
 //debug : compter les ticks/secondes -- count ticks/seconds
 let tick = 0;
 setInterval(() => {
@@ -323,7 +323,7 @@ webapp.get("/", (req, res) => {
       <script>
         setTimeout(() => {
           window.location = window.location;
-        }, 250)
+        }, 1000)
       </script>
       </body>
   </html>`)
