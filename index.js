@@ -3,18 +3,30 @@
 //Commentaires écrits en : français -- anglais
 //Variables written in french for now
 
-//On importe tous les modules dont ont a besoin
+//On importe tous les modules dont ont a besoin -- immorting all modules
 const WebSocket = require("ws");
 const crypto = require("crypto");
+
 const express = require("express");
 const INDEX = '/index.html';
 const server = express()
+.disable("x-powered-by") //Pour la sécurité mais bon vu que le code est Open Source... -- For safety but since the code is Open Source...
 .use((req, res) => res.sendFile(INDEX, { root: __dirname }))
 .listen(process.env.PORT || 3000, () =>  {
-  console.log("webapp démarrée")
+  console.log(textesTraduits["webapp-start"])
 })
 
 let appName = "OxeyMultiplayer server"
+
+// traductions -- translations
+let language = Intl.DateTimeFormat().resolvedOptions().locale.substring(0, 2);
+const i18n = require('./i18n');
+if(!i18n.supported.includes(language)) {
+  language = "en";
+  console.log("🧭language couln't be resolved, fallback : english");
+}
+const textesTraduits = i18n[language];
+console.log(textesTraduits["language-announcement"] + language);
 
 /**
  * Plan de construction d'un objet "Message"
@@ -93,7 +105,7 @@ class Partie {
 }
 const wss = new WebSocket.Server({ server });
 
-console.log("🌐 Serveur en ligne sur le port " + process.env.PORT || 3000);
+console.log(textesTraduits["server-online"] + "" + (process.env.PORT || 3000));
 //debug : compter les ticks/secondes -- count ticks/seconds
 let tick = 0;
 setInterval(() => {
@@ -125,7 +137,7 @@ wss.on("connection", (client) => {
   client.send(donnesAEnvoyer.toString());
   //on envoie un message dans la console. -- Log the fact that a client connected in console
   console.log(
-    "🎮 Nouveau joueur connecté. (ID: " +
+    textesTraduits["player-connected"] +
       identifiant +
       ")"
   );
@@ -136,7 +148,7 @@ wss.on("connection", (client) => {
 
     clients = [];
     console.log(
-      "🎮 "+ joueursParPartie +" joueurs connectés : début de la partie (ID #" +
+      textesTraduits["all-connected"] +
         partie.idPartie +
         " )"
     );
@@ -146,22 +158,22 @@ wss.on("connection", (client) => {
           `{"idPartie":"${partie.idPartie}","type":"start"}`
         );
       });
-    }, 500); //500ms pour être sur que le client n°2 a eu le temps de traiter le message précédent
+    }, 500); //500ms pour être sur que le client n°2 a eu le temps de traiter le message précédent -- Leave 500ms to let client n°2 process previous message
   }
 
-  //quand on reçoit un message du client
+  //quand on reçoit un message du client -- when we recieve a message from the client
   client.on("message", (message) => {
     derniersTempsDeTraitements.push(tempsDeTraitement);
-    //si il y a 10 éléments ou plus, retirer le premier
+    //si il y a 10 éléments ou plus, retirer le premier -- if more than 10 elements, remove the first one
     if(derniersTempsDeTraitements.length >= 10) {
       derniersTempsDeTraitements.shift();
     }
     tempsDeTraitement = 0;
-    let debutTraitement = Date.now();
+    let debutTraitement = Date.now(); // Timestamp pour calculer le temps du traitement du message -- Timestamp to calculate the time of checking action
 
-    //à faire : anti-triche
+    //à faire : anti-triche -- to-do : anticheat
 
-    //on vérifie que le message contient uniquement des bonnes informations
+    //on vérifie que le message contient uniquement des bonnes informations -- check message only contains informations we want
     /**
      * Liste des codes d'erreurs -- error codes :
      * 001 : Impossible de formatter l'entrée  -- Cannot format input
@@ -213,7 +225,7 @@ wss.on("connection", (client) => {
       );
     } catch (error) {
       client.send(`{"error":003,"type":"error"}`);
-      console.log("le message envoyé n'est pas valide");
+      console.log(textesTraduits["invalid-msg"]);
       tempsDeTraitement = (Date.now() - debutTraitement);
       return;
     }
@@ -229,7 +241,7 @@ wss.on("connection", (client) => {
                 if(clientActuel.id != msgCorrect.id) {
                   // si le client ayant envoyé la donnée n'a pas donné son bon identifiant, ignorer. -- If the client sent a message but with the wrong ID, dismiss.
                   client.send(`{"error":004,"type":"error"}`);
-                  console.log("🚨client avec un ID invalide")
+                  console.log(textesTraduits["invalid-id"])
                   tempsDeTraitement = (Date.now() - debutTraitement);
                   return;
                 }
@@ -255,37 +267,38 @@ wss.on("connection", (client) => {
     }
   );
 
-  //lors d'une déconnection d'un client
+  //lors d'une déconnection d'un client -- when a client disconnects
   client.on('close', () => {
-    //si le client est déconnecté, on le supprime
-    console.log("client déconnecté... suppression de sa connection...");
+    //si le client est déconnecté, on le supprime -- if he is in the clients list, remove him
+    console.log(textesTraduits["disconnected-client-msg"]);
     //voir si il n'est pas dans une partie
     for (let i = 0; i < clients.length; i++) {
       const clientActuel = clients[i];
       if(clientActuel.socket == client) {
         clients.splice(i, 1);
-        console.log("le client n°" + (clientActuel.id) + " a été supprimé.");
+        console.log(textesTraduits["client-deleted"] + clientActuel.id);
         return;
       } else {
         continue;
       }
     }
-    //voir si le client est dans une partie
+    //voir si le client est dans une partie -- check if client is in a game
     for (let i = 0; i < parties.length; i++) {
       const partieActuelle = parties[i];
       let clientsDePartie = partieActuelle.clients;
+      //puis prendre la bonne "référence" de client dans la liste des clients de la partie -- then get the good client ref from the game's clients
       for (let i = 0; i < clientsDePartie.length; i++) {
         const clientActuel = clientsDePartie[i];
         if(clientActuel.socket == client) {
           clientsDePartie.splice(i, 1);
-          console.log("le client n°" + (clientActuel.id) + " a été supprimé.");
+          console.log(textesTraduits["client-deleted"] + clientActuel.id);
           return;
         } else {
           continue;
         }
       }
     }
-    console.log("action finie...")
+    console.log(textesTraduits["action-done"])
   })
 });
 
@@ -307,8 +320,7 @@ process.on("exit", (code) => {
   wss.close();
   //message de sortie
   console.log(
-    "Le serveur c'est fermé avec le code d'arret : " +
-      code +
-      " (0 = arret normal, autre = erreur)"
+    textesTraduits["closed-server"] +
+      code
   );
 });
