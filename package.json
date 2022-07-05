@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "description": "multiplayer websocket server for gdevelop or other",
   "repository": {
-    "url":"https://github.com/Oxey405/OxeyMultiplayer",
+    "url": "https://github.com/Oxey405/OxeyMultiplayer",
     "type": "git"
   },
   "main": "index.js",
@@ -13,7 +13,9 @@
   "author": "Oxey405",
   "license": "MIT",
   "dependencies": {
+    "bufferutil": "^4.0.6",
     "express": "^4.18.1",
+    "utf-8-validate": "^5.0.9",
     "ws": "^8.3.0"
   }
 }

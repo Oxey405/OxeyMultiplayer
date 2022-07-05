@@ -7,10 +7,10 @@
 const WebSocket = require("ws");
 const crypto = require("crypto");
 const express = require("express");
-const webapp = express();
-webapp.use((req, res) => res.sendFile(INDEX, { root: __dirname }));
-
-webapp.listen(process.env.PORT || 3000, () =>  {
+const INDEX = '/index.html';
+const server = express()
+.use((req, res) => res.sendFile(INDEX, { root: __dirname }))
+.listen(process.env.PORT || 3000, () =>  {
   console.log("webapp démarrée")
 })
 
@@ -91,7 +91,7 @@ class Partie {
       .substring(0, 16);
   }
 }
-const wss = new WebSocket.Server({ server: webapp });
+const wss = new WebSocket.Server({ server });
 
 console.log("🌐 Serveur en ligne sur le port " + process.env.PORT || 3000);
 //debug : compter les ticks/secondes -- count ticks/seconds
@@ -109,6 +109,8 @@ let parties = [];
 //Pour le déboggage -- For debugging (time of processing)
 let tempsDeTraitement = 0;
 let derniersTempsDeTraitements = [];
+let joueursParPartie = 2;
+
 //Evenement qui s'active lorsqu'une connection est détectée -- This event activate whenever a client connects
 wss.on("connection", (client) => {
   //on lui donne son identifiant dans un format JSON converti en texte -- give client an ID in JSON texy
@@ -297,38 +299,7 @@ wss.on("close", () => {
   wsState = "closed";
 })
 
-let joueursParPartie = 2;
 
-webapp.get("/info", (req, res) => {
-  res.send(
-    `<html>
-      <head>
-      <title>OxeyMultiplayer state</title>
-      </head>
-      <body>
-      <style>
-      body {
-        color:white;
-        background-color:#141414;
-        font-family:'Rubik';
-      }
-      </style>
-      <h1>Etat du serveur «${appName}» (State of server «${appName}»)</h1>
-      <h2>Websocket</h2>
-      <p>Etat du websocket (websocket state) : ${wsState}</p>
-      <p>Nombre de clients connectés (client counts) : ${parties.length * joueursParPartie + clients.length}</p>
-      <p>Ticks par seconde (ticks per second) : ${tick}/s</p>
-      <p>Temps de traitements (processing times) : ${derniersTempsDeTraitements.map((x, i, a) => {
-        return x + "ms ("+(i+1)+"/" + a.length +")";
-      })}</p>
-      <script>
-        setTimeout(() => {
-          window.location = window.location;
-        }, 1000)
-      </script>
-      </body>
-  </html>`)
-})
 
 //lors de la fin du processus
 process.on("exit", (code) => {
