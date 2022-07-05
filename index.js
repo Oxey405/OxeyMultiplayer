@@ -159,7 +159,7 @@ wss.on("connection", (client) => {
      * 004 : Mauvaise origine -- Wrong origin (sender)
      */
 
-    //1. vérifier que le message n'est pas vide
+    //1. vérifier que le message n'est pas vide -- check if message isn't empty
     if ((message.length = "")) {
       client.send(`{"error":002,"type":"error"}`);
       return;
@@ -167,20 +167,22 @@ wss.on("connection", (client) => {
     //2. Formatter le message
     let messageFormate;
     try {
-      //on ESSAIE (try) de formatter le message
+      //on ESSAIE (try) de formatter le message -- try to format message
       messageFormate = JSON.parse(message);
     } catch (error) {
-      //Si il y a une erreur, on l'attrape (catch)
-      //et on renvoie un code d'erreur au client formatté en JSON mais en texte
+      //Si il y a une erreur, on l'attrape (catch) -- if error, catch it
+      //et on renvoie un code d'erreur au client formatté en JSON mais en texte -- if error, send error code to client
       client.send(`{"error":001,"type":"error"}`);
-      //puis on l'affiche dans la console
+      //puis on l'affiche dans la console -- show error in console
       console.log(error);
+      
     }
-    //3. Mettre le message dans un objet Message
+    //3. Mettre le message dans un objet Message -- Put message in a message object
     let msgCorrect;
     try {
-      //tenter de mettre le message reçu dans son objet "Message"
-      //le but de cette action est de garder UNIQUEMENT les données qui nous intéressent et éviter de l'injection de données non voulues.
+      //tenter de mettre le message reçu dans son objet "Message" -- try to put the message in a message object
+      //le but de cette action est de garder UNIQUEMENT les données qui nous intéressent et éviter de l'injection de données non voulues. --
+      //the goal of this action is to ONLY keep datas that we need and to avoid unwanted data injection
       msgCorrect = new Message(
         messageFormate.id,
         messageFormate.secret,
@@ -196,11 +198,11 @@ wss.on("connection", (client) => {
       return;
     } finally {
     
-      //trouver la partie correspondante dans la liste
+      //trouver la partie correspondante dans la liste -- find the matching game in the list
       for (let i = 0; i < parties.length; i++) {
         const partie = parties[i];
         if (partie.idPartie == msgCorrect.idPartie) {
-            //Vérifier si l'envoyeur a le bon secret
+            //Vérifier si l'envoyeur a le bon secret -- check if sender has the valid secret
             for (let z = 0; z < partie.clients.length; z++) {
               const clientActuel = partie.clients[z];
               //prendre le client avec le bon ID
@@ -213,18 +215,18 @@ wss.on("connection", (client) => {
                 }
               }
             }
-          //pour chaque instance des clients connectés
+          //pour chaque instance des clients connectés -- for each instance of connected clients in a game
           partie.clients.forEach((instanceDeClient) => {
             //supprimer le secret de l'autre client
             let msgAEnvoyer = msgCorrect.toJSON();
             msgAEnvoyer.secret = "";
-            //pour tout les clients connectés qui ne sont pas celui qui a envoyé le message
+            //pour tout les clients connectés qui ne sont pas celui qui a envoyé le message -- for all connected clients except the one who sent the message
             if (instanceDeClient.socket != client) {
-              //transmettre le message aux clients
+              //transmettre le message aux clients -- send message to all clients
               instanceDeClient.socket.send(JSON.stringify(msgAEnvoyer));
             }
           });
-          tick++;
+          tick++; // Ajouter un tick marquant donc la fin d'un cycle de traitement -- Add a tick marking the end of a treatment cycle
         }
       }
     }

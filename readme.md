@@ -52,7 +52,7 @@ Si vous souhaitez contribuer au projet, n'hesitez pas ! Il vous faut juste **con
 2. Documentez en français puis en anglais en suivant ce format "français -- anglais" sur la **MEME LIGNE**
 3. Vérifiez que votre code **fonctionne correctement** et ne *casse rien de déjà implémenté*
 4. Il est recommandé d'écrire les noms de variables en français
-## Commeent créditer
+## Comment créditer
 Dans votre readme ou les crédits de votre application/jeu mentionnez : "Serveur mutlijoueur : OxeyMutliplayer (github.com/Oxey405/OxeyMutliplayer)" Vous pouvez retirer le lien du texte si lorsque l'on clique sur le texte, la page github du projet s'affiche.
 
 # Vous êtes arrivés à la fin du Readme !
