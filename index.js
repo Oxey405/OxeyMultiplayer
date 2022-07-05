@@ -6,6 +6,15 @@
 //On importe tous les modules dont ont a besoin
 const WebSocket = require("ws");
 const crypto = require("crypto");
+const express = require("express");
+const webapp = express();
+
+webapp.listen(443, () =>  {
+  console.log("webapp démarrée")
+})
+
+let appName = "OxeyMultiplayer server"
+
 /**
  * Plan de construction d'un objet "Message"
  * @param {Number} id identifiant "public" -- public id
@@ -15,9 +24,8 @@ const crypto = require("crypto");
  * @param {Array} inventaire inventaire du joueur -- inventory of player
  */
 class Message {
-  constructor(id, secret, posX, posY, angle, inventaire, idPartie) {
+  constructor(id, posX, posY, angle, inventaire, idPartie) {
     this.id = id;
-    this.secret = secret;
     this.posX = posX;
     this.posY = posY;
     this.angle = angle;
@@ -42,24 +50,23 @@ class Message {
  * The blueprint for a "Client" object
  * Il contient -- contains :
  * @param {Number} id identifiant "public" -- "public" id of a client
- * @param {String} secret identifiant secret pour valider l'origine d'un message -- secret id to confirm message's origin
+ * @param {any} socket Websocket client
  */
 class Client {
-  constructor(id, secret, socket) {
+  constructor(id, socket) {
     this.id = id;
-    this.secret = secret;
     this.socket = socket;
   }
 
 /**convertir l'objet en JSON -- Convert object to JSON*/
   toJSON() {
     return JSON.parse(
-      `{"id":${this.id},"secret":"${this.secret}","type":"init"}`
+      `{"id":${this.id},"type":"init"}`
     );
   }
   /**convertir l'objet en Texte -- Convert object to text JSON*/
   toString() {
-    return `{"id":${this.id},"secret":"${this.secret}","type":"init"}`;
+    return `{"id":${this.id},"type":"init"}`;
   }
 }
 
@@ -98,21 +105,16 @@ setInterval(() => {
 let clients = [];
 //contiens la liste de nos parties -- list of games
 let parties = [];
+//Pour le déboggage -- For debugging (time of processing)
+let tempsDeTraitement = 0;
+let derniersTempsDeTraitements = [];
 //Evenement qui s'active lorsqu'une connection est détectée -- This event activate whenever a client connects
 wss.on("connection", (client) => {
   //on lui donne son identifiant dans un format JSON converti en texte -- give client an ID in JSON texy
   let identifiant = clients.length + 1;
-  //on génère un hash (basiquement une longue valeur binaire) que l'on convertie en texte hexadécimal et que l'on coupe pour prendre les 16 premiers caractèrs
-  //We create a hash (basically a LONG binary value) converted in hexadecimal text and cutted out to the first 16 characters
-  let secret = crypto
-    .createHash("sha256")
-    .update(crypto.randomBytes(16))
-    .digest()
-    .toString("hex")
-    .substring(0, 16); //L'index de la première lettre est 0 comme dans tous les languages de programmation -- the index of the first letter is 0 like in every programming language
 
   //on créé un nouveau client -- creating a NEW client.
-  let clientCree = new Client(identifiant, secret, client);
+  let clientCree = new Client(identifiant, client);
 
   //on ajoute le client à la liste des clients connectés -- adding client to clients list
   clients.push(clientCree);
@@ -122,18 +124,16 @@ wss.on("connection", (client) => {
   console.log(
     "🎮 Nouveau joueur connecté. (ID: " +
       identifiant +
-      ", secret : " +
-      secret +
       ")"
   );
   //si on a deux clients, on les mets dans une partie -- if there are twos clients, we init a game
-  if (clients.length == 2) {
+  if (clients.length == joueursParPartie) {
     let partie = new Partie(clients, "playing");
     parties.push(partie);
 
     clients = [];
     console.log(
-      "🎮 2 joueurs connectés : début de la partie (ID #" +
+      "🎮 "+ joueursParPartie +" joueurs connectés : début de la partie (ID #" +
         partie.idPartie +
         " )"
     );
@@ -148,6 +148,14 @@ wss.on("connection", (client) => {
 
   //quand on reçoit un message du client
   client.on("message", (message) => {
+    derniersTempsDeTraitements.push(tempsDeTraitement);
+    //si il y a 10 éléments ou plus, retirer le premier
+    if(derniersTempsDeTraitements.length >= 10) {
+      derniersTempsDeTraitements.shift();
+    }
+    tempsDeTraitement = 0;
+    let debutTraitement = Date.now();
+
     //à faire : anti-triche
 
     //on vérifie que le message contient uniquement des bonnes informations
@@ -157,11 +165,18 @@ wss.on("connection", (client) => {
      * 002 : Pas de données reçues -- No data recieved
      * 003 : Données invalides -- Invalid data
      * 004 : Mauvaise origine -- Wrong origin (sender)
+     * 005 : Packet trop lourd -- Packet too heavy
      */
 
     //1. vérifier que le message n'est pas vide -- check if message isn't empty
-    if ((message.length = "")) {
+    if ((message.length == 0)) {
       client.send(`{"error":002,"type":"error"}`);
+      tempsDeTraitement = (Date.now() - debutTraitement);
+      return;
+    }
+    if((message.length > 512 )) {
+      client.send(`{"error":005, "type":"error"}`);
+      tempsDeTraitement = (Date.now() - debutTraitement);
       return;
     }
     //2. Formatter le message
@@ -175,6 +190,8 @@ wss.on("connection", (client) => {
       client.send(`{"error":001,"type":"error"}`);
       //puis on l'affiche dans la console -- show error in console
       console.log(error);
+      tempsDeTraitement = (Date.now() - debutTraitement);
+      return;
       
     }
     //3. Mettre le message dans un objet Message -- Put message in a message object
@@ -185,7 +202,6 @@ wss.on("connection", (client) => {
       //the goal of this action is to ONLY keep datas that we need and to avoid unwanted data injection
       msgCorrect = new Message(
         messageFormate.id,
-        messageFormate.secret,
         messageFormate.posX,
         messageFormate.posY,
         messageFormate.angle,
@@ -195,9 +211,9 @@ wss.on("connection", (client) => {
     } catch (error) {
       client.send(`{"error":003,"type":"error"}`);
       console.log("le message envoyé n'est pas valide");
+      tempsDeTraitement = (Date.now() - debutTraitement);
       return;
-    } finally {
-    
+    }
       //trouver la partie correspondante dans la liste -- find the matching game in the list
       for (let i = 0; i < parties.length; i++) {
         const partie = parties[i];
@@ -205,14 +221,16 @@ wss.on("connection", (client) => {
             //Vérifier si l'envoyeur a le bon secret -- check if sender has the valid secret
             for (let z = 0; z < partie.clients.length; z++) {
               const clientActuel = partie.clients[z];
-              //prendre le client avec le bon ID
-              if(clientActuel.id == msgCorrect.id) {
-                // si l'ID ne correspond pas au secret alors le message n'a pas d'origine valide -- if the ID of the sender doesn't match with the sender's secret then message has no valid origin
-                //A-FAIRE : Préferer utiliser la méthode de signature numérique cryptographique. -- TO-DO: use cryptographical signing
-                if(clientActuel.secret !== msgCorrect.secret) {
-                  client.send(`{"error":003,"type":"error"}`);
+              //prendre le client ayant envoyé le message
+              if(clientActuel.client == client) {
+                if(clientActuel.id != msgCorrect.id) {
+                  // si le client ayant envoyé la donnée n'a pas donné son bon identifiant, ignorer. -- If the client sent a message but with the wrong ID, dismiss.
+                  client.send(`{"error":004,"type":"error"}`);
+                  console.log("🚨client avec un ID invalide")
+                  tempsDeTraitement = (Date.now() - debutTraitement);
                   return;
                 }
+
               }
             }
           //pour chaque instance des clients connectés -- for each instance of connected clients in a game
@@ -227,28 +245,89 @@ wss.on("connection", (client) => {
             }
           });
           tick++; // Ajouter un tick marquant donc la fin d'un cycle de traitement -- Add a tick marking the end of a treatment cycle
+          tempsDeTraitement = (Date.now() - debutTraitement);
+          return;
         }
       }
     }
-  });
+  );
 
   //lors d'une déconnection d'un client
-  // client.on('close', () => {
-  //   //si le client est déconnecté, on le supprime
-  //   console.log("client déconnecté... suppression de sa connection...");
-  //   for (let i = 0; i < clients.length; i++) {
-  //     const clientActuel = clients[i];
-  //     if(clientActuel.socket == client) {
-  //       clients.splice(i, 1);
-  //       console.log("le client n°" + (clientActuel.id) + " a été supprimé.");
-  //       return;
-  //     } else {
-  //       continue;
-  //     }
-  //   }
-  //   console.log("action finie...")
-  // })
+  client.on('close', () => {
+    //si le client est déconnecté, on le supprime
+    console.log("client déconnecté... suppression de sa connection...");
+    //voir si il n'est pas dans une partie
+    for (let i = 0; i < clients.length; i++) {
+      const clientActuel = clients[i];
+      if(clientActuel.socket == client) {
+        clients.splice(i, 1);
+        console.log("le client n°" + (clientActuel.id) + " a été supprimé.");
+        return;
+      } else {
+        continue;
+      }
+    }
+    //voir si le client est dans une partie
+    for (let i = 0; i < parties.length; i++) {
+      const partieActuelle = parties[i];
+      let clientsDePartie = partieActuelle.clients;
+      for (let i = 0; i < clientsDePartie.length; i++) {
+        const clientActuel = clientsDePartie[i];
+        if(clientActuel.socket == client) {
+          clientsDePartie.splice(i, 1);
+          console.log("le client n°" + (clientActuel.id) + " a été supprimé.");
+          return;
+        } else {
+          continue;
+        }
+      }
+    }
+    console.log("action finie...")
+  })
 });
+
+
+let wsState = "closed";
+wss.on("listening", () => {
+  wsState = "listening";
+})
+
+wss.on("close", () => {
+  wsState = "closed";
+})
+
+let joueursParPartie = 2;
+
+webapp.get("/", (req, res) => {
+  res.send(
+    `<html>
+      <head>
+      <title>OxeyMultiplayer state</title>
+      </head>
+      <body>
+      <style>
+      body {
+        color:white;
+        background-color:#141414;
+        font-family:'Rubik';
+      }
+      </style>
+      <h1>Etat du serveur «${appName}» (State of server «${appName}»)</h1>
+      <h2>Websocket</h2>
+      <p>Etat du websocket (websocket state) : ${wsState}</p>
+      <p>Nombre de clients connectés (client counts) : ${parties.length * joueursParPartie + clients.length}</p>
+      <p>Ticks par seconde (ticks per second) : ${tick}/s</p>
+      <p>Temps de traitements (processing times) : ${derniersTempsDeTraitements.map((x, i, a) => {
+        return x + "ms ("+(i+1)+"/" + a.length +")";
+      })}</p>
+      <script>
+        setTimeout(() => {
+          window.location = window.location;
+        }, 250)
+      </script>
+      </body>
+  </html>`)
+})
 
 //lors de la fin du processus
 process.on("exit", (code) => {
