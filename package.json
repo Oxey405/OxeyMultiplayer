@@ -2,6 +2,10 @@
   "name": "oxeymultiplayer",
   "version": "1.1.0",
   "description": "multiplayer websocket server for gdevelop or other",
+  "repository": {
+    "url":"https://github.com/Oxey405/OxeyMultiplayer",
+    "type": "git"
+  },
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
