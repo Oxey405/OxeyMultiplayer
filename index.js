@@ -2,7 +2,8 @@
 //Comments formatted like this : french -- english
 //Commentaires écrits en : français -- anglais
 //Variables written in french for now
-
+console.log("OXEYMULTIPLAYER (c) 2022 Oxey405 - Under MIT LICENSE");
+console.log("SOURCE CODE AVAIBLE AT : https://github.com/oxey405/OxeyMultiplayer")
 //On importe tous les modules dont ont a besoin -- immorting all modules
 const WebSocket = require("ws");
 const crypto = require("crypto");
@@ -49,12 +50,12 @@ class Message {
   /**convertir l'objet en JSON -- Convert object to JSON*/
   toJSON() {
     return JSON.parse(
-      `{"id":${this.id},"secret":"${this.secret}", "posX":${this.posX}, "posY":${this.posY}, "angle":${this.angle}, "inventaire":[${this.inventaire}]}`
+      `{"id":${this.id}, "posX":${this.posX}, "posY":${this.posY}, "angle":${this.angle}, "inventaire":[${this.inventaire}]}`
     );
   }
   /**convertir l'objet en Texte -- Convert object to text JSON*/
   toString() {
-    return `{"id":${this.id},"secret":"${this.secret}", "posX":${this.posX}, "posY":${this.posY}, "angle":${this.angle}, "inventaire":[${this.inventaire}]}`;
+    return `{"id":${this.id}, "posX":${this.posX}, "posY":${this.posY}, "angle":${this.angle}, "inventaire":[${this.inventaire}]}`;
   }
 }
 
@@ -233,7 +234,7 @@ wss.on("connection", (client) => {
       for (let i = 0; i < parties.length; i++) {
         const partie = parties[i];
         if (partie.idPartie == msgCorrect.idPartie) {
-            //Vérifier si l'envoyeur a le bon secret -- check if sender has the valid secret
+            //Vérifier si le client ayant envoyé le message est le bon -- Check message origin's validity
             for (let z = 0; z < partie.clients.length; z++) {
               const clientActuel = partie.clients[z];
               //prendre le client ayant envoyé le message
@@ -250,9 +251,7 @@ wss.on("connection", (client) => {
             }
           //pour chaque instance des clients connectés -- for each instance of connected clients in a game
           partie.clients.forEach((instanceDeClient) => {
-            //supprimer le secret de l'autre client
             let msgAEnvoyer = msgCorrect.toJSON();
-            msgAEnvoyer.secret = "";
             //pour tout les clients connectés qui ne sont pas celui qui a envoyé le message -- for all connected clients except the one who sent the message
             if (instanceDeClient.socket != client) {
               //transmettre le message aux clients -- send message to all clients

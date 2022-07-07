@@ -1,7 +1,7 @@
 const localization = {
     en: {
         "language-announcement":"🧭Language detected and choosen : ",
-        "webapp-start":"📦WebApp starting...",
+        "webapp-start":"📦WebApp started",
         "server-online":"🌐 Server online on port ",
         "player-connect":"🎮 New player connected. (ID: ",
         "all-connected": "📯Enough players connected, starting a game with ID : ",
@@ -15,7 +15,7 @@ const localization = {
     },
     fr: {
         "language-announcement":"🧭Langue détectée et choisie : ",
-        "webapp-start":"📦Démarrage de l'application web...",
+        "webapp-start":"📦WebApp Démarrée.",
         "server-online":"🌐 Serveur en ligne sur le port ",
         "player-connect":"🎮 Nouveau joueur connecté (ID : ",
         "all-connected": "📯Suffisamment de joueurs, initialisation de la partie avec l'ID : ",
