@@ -11,18 +11,18 @@ const crypto = require("crypto");
 const express = require("express");
 const INDEX = '/index.html';
 const server = express()
-.disable("x-powered-by") //Pour la sécurité mais bon vu que le code est Open Source... -- For safety but since the code is Open Source...
-.use((req, res) => res.sendFile(INDEX, { root: __dirname }))
-.listen(process.env.PORT || 3000, () =>  {
-  console.log(textesTraduits["webapp-start"])
-})
+  .disable("x-powered-by") //Pour la sécurité mais bon vu que le code est Open Source... -- For safety but since the code is Open Source...
+  .use((req, res) => res.sendFile(INDEX, { root: __dirname }))
+  .listen(process.env.PORT || 3000, () => {
+    console.log(textesTraduits["webapp-start"])
+  })
 
 let appName = "OxeyMultiplayer server"
 
 // traductions -- translations
 let language = Intl.DateTimeFormat().resolvedOptions().locale.substring(0, 2);
 const i18n = require('./i18n');
-if(!i18n.supported.includes(language)) {
+if (!i18n.supported.includes(language)) {
   language = "en";
   console.log("🧭language couln't be resolved, fallback : english");
 }
@@ -39,7 +39,7 @@ console.log(textesTraduits["language-announcement"] + language);
  */
 class Message {
   constructor(id, posX, posY, angle, inventaire, idPartie) {
-    this.id = id;
+    this.id = id || "";
     this.posX = posX;
     this.posY = posY;
     this.angle = angle;
@@ -49,16 +49,53 @@ class Message {
   }
   /**convertir l'objet en JSON -- Convert object to JSON*/
   toJSON() {
-    return JSON.parse(
-      `{"id":${this.id}, "posX":${this.posX}, "posY":${this.posY}, "angle":${this.angle}, "inventaire":[${this.inventaire}]}`
-    );
+    if (this.type == "infoJoueur") {
+      return {
+        id: this.id,
+        posX: this.posX,
+        posY: this.posY,
+        angle: this.angle,
+        inventaire: this.inventaire
+      };
+      //return JSON.parse(
+      //  `{"id":${this.id}, "posX":${this.posX}, "posY":${this.posY}, "angle":${this.angle}, "inventaire":[${this.inventaire}]}`
+      //);
+    } else {
+      let newData = {};
+      newData.id = this.id;
+      newData.data = this.data;
+      return newData;
+    }
   }
   /**convertir l'objet en Texte -- Convert object to text JSON*/
   toString() {
-    return `{"id":${this.id}, "posX":${this.posX}, "posY":${this.posY}, "angle":${this.angle}, "inventaire":[${this.inventaire}]}`;
+    if (this.type == "infoJoueur") {
+      return JSON.stringify({
+        id: this.id,
+        posX: this.posX,
+        posY: this.posY,
+        angle: this.angle,
+        inventaire: this.inventaire
+      });
+      //return `{"id":${this.id}, "posX":${this.posX}, "posY":${this.posY}, "angle":${this.angle}, "inventaire":[${this.inventaire}]}`;
+    }
+    else {
+      let newData = {};
+      newData.id = this.id;
+      newData.data = this.data;
+      return JSON.stringify(newData);
+    }
+
   }
 }
-
+function mesData(id, data, idPartie) {
+  const mess = new Message();
+  mess.id = id;
+  mess.data = data; 
+  mess.idPartie = idPartie;
+  mess.type = "infoJoueurV2"; // infoJoueur = "playerInfo" in french
+  return mess;
+}
 /**
  * Plan de construction d'un object "Client"
  * The blueprint for a "Client" object
@@ -72,7 +109,7 @@ class Client {
     this.socket = socket;
   }
 
-/**convertir l'objet en JSON -- Convert object to JSON*/
+  /**convertir l'objet en JSON -- Convert object to JSON*/
   toJSON() {
     return JSON.parse(
       `{"id":${this.id},"type":"init"}`
@@ -122,7 +159,7 @@ let parties = [];
 //Pour le déboggage -- For debugging (time of processing)
 let tempsDeTraitement = 0;
 let derniersTempsDeTraitements = [];
-let joueursParPartie = 2;
+let joueursParPartie = process.env.PLAYERS || 2;
 
 //Evenement qui s'active lorsqu'une connection est détectée -- This event activate whenever a client connects
 wss.on("connection", (client) => {
@@ -139,19 +176,20 @@ wss.on("connection", (client) => {
   //on envoie un message dans la console. -- Log the fact that a client connected in console
   console.log(
     textesTraduits["player-connected"] +
-      identifiant +
-      ")"
+    identifiant +
+    ")"
   );
   //si on a deux clients, on les mets dans une partie -- if there are twos clients, we init a game
-  if (clients.length == joueursParPartie) {
+
+  if (clients.length >= joueursParPartie) {
     let partie = new Partie(clients, "playing");
     parties.push(partie);
 
     clients = [];
     console.log(
       textesTraduits["all-connected"] +
-        partie.idPartie +
-        " )"
+      partie.idPartie +
+      " )"
     );
     setTimeout(() => {
       partie.clients.forEach((clientActuel) => {
@@ -166,7 +204,7 @@ wss.on("connection", (client) => {
   client.on("message", (message) => {
     derniersTempsDeTraitements.push(tempsDeTraitement);
     //si il y a 10 éléments ou plus, retirer le premier -- if more than 10 elements, remove the first one
-    if(derniersTempsDeTraitements.length >= 10) {
+    if (derniersTempsDeTraitements.length >= 10) {
       derniersTempsDeTraitements.shift();
     }
     tempsDeTraitement = 0;
@@ -190,7 +228,7 @@ wss.on("connection", (client) => {
       tempsDeTraitement = (Date.now() - debutTraitement);
       return;
     }
-    if((message.length > 512 )) {
+    if ((message.length > 512)) {
       client.send(`{"error":005, "type":"error"}`);
       tempsDeTraitement = (Date.now() - debutTraitement);
       return;
@@ -208,7 +246,7 @@ wss.on("connection", (client) => {
       console.log(error);
       tempsDeTraitement = (Date.now() - debutTraitement);
       return;
-      
+
     }
     //3. Mettre le message dans un objet Message -- Put message in a message object
     let msgCorrect;
@@ -225,45 +263,55 @@ wss.on("connection", (client) => {
         messageFormate.idPartie
       );
     } catch (error) {
-      client.send(`{"error":003,"type":"error"}`);
-      console.log(textesTraduits["invalid-msg"]);
-      tempsDeTraitement = (Date.now() - debutTraitement);
-      return;
-    }
-      //trouver la partie correspondante dans la liste -- find the matching game in the list
-      for (let i = 0; i < parties.length; i++) {
-        const partie = parties[i];
-        if (partie.idPartie == msgCorrect.idPartie) {
-            //Vérifier si le client ayant envoyé le message est le bon -- Check message origin's validity
-            for (let z = 0; z < partie.clients.length; z++) {
-              const clientActuel = partie.clients[z];
-              //prendre le client ayant envoyé le message
-              if(clientActuel.client == client) {
-                if(clientActuel.id != msgCorrect.id) {
-                  // si le client ayant envoyé la donnée n'a pas donné son bon identifiant, ignorer. -- If the client sent a message but with the wrong ID, dismiss.
-                  client.send(`{"error":004,"type":"error"}`);
-                  console.log(textesTraduits["invalid-id"])
-                  tempsDeTraitement = (Date.now() - debutTraitement);
-                  return;
-                }
+      try {
+        msgCorrect = mesData (
+          messageFormate.id,
+          messageFormate.data,
+          messageFormate.idPartie
+        );
+      }
+      catch (errorr) {
+        client.send(`{"error":003,"type":"error"}`);
+        console.log(textesTraduits["invalid-msg"]);
+        tempsDeTraitement = (Date.now() - debutTraitement);
+        return;
+      }
 
-              }
+    }
+    //trouver la partie correspondante dans la liste -- find the matching game in the list
+    for (let i = 0; i < parties.length; i++) {
+      const partie = parties[i];
+      if (partie.idPartie == msgCorrect.idPartie) {
+        //Vérifier si le client ayant envoyé le message est le bon -- Check message origin's validity
+        for (let z = 0; z < partie.clients.length; z++) {
+          const clientActuel = partie.clients[z];
+          //prendre le client ayant envoyé le message
+          if (clientActuel.client == client) {
+            if (clientActuel.id != msgCorrect.id) {
+              // si le client ayant envoyé la donnée n'a pas donné son bon identifiant, ignorer. -- If the client sent a message but with the wrong ID, dismiss.
+              client.send(`{"error":004,"type":"error"}`);
+              console.log(textesTraduits["invalid-id"])
+              tempsDeTraitement = (Date.now() - debutTraitement);
+              return;
             }
-          //pour chaque instance des clients connectés -- for each instance of connected clients in a game
-          partie.clients.forEach((instanceDeClient) => {
-            let msgAEnvoyer = msgCorrect.toJSON();
-            //pour tout les clients connectés qui ne sont pas celui qui a envoyé le message -- for all connected clients except the one who sent the message
-            if (instanceDeClient.socket != client) {
-              //transmettre le message aux clients -- send message to all clients
-              instanceDeClient.socket.send(JSON.stringify(msgAEnvoyer));
-            }
-          });
-          tick++; // Ajouter un tick marquant donc la fin d'un cycle de traitement -- Add a tick marking the end of a treatment cycle
-          tempsDeTraitement = (Date.now() - debutTraitement);
-          return;
+
+          }
         }
+        //pour chaque instance des clients connectés -- for each instance of connected clients in a game
+        partie.clients.forEach((instanceDeClient) => {
+          let msgAEnvoyer = msgCorrect.toJSON();
+          //pour tout les clients connectés qui ne sont pas celui qui a envoyé le message -- for all connected clients except the one who sent the message
+          if (instanceDeClient.socket != client) {
+            //transmettre le message aux clients -- send message to all clients
+            instanceDeClient.socket.send(JSON.stringify(msgAEnvoyer));
+          }
+        });
+        tick++; // Ajouter un tick marquant donc la fin d'un cycle de traitement -- Add a tick marking the end of a treatment cycle
+        tempsDeTraitement = (Date.now() - debutTraitement);
+        return;
       }
     }
+  }
   );
 
   //lors d'une déconnection d'un client -- when a client disconnects
@@ -273,7 +321,7 @@ wss.on("connection", (client) => {
     //voir si il n'est pas dans une partie
     for (let i = 0; i < clients.length; i++) {
       const clientActuel = clients[i];
-      if(clientActuel.socket == client) {
+      if (clientActuel.socket == client) {
         clients.splice(i, 1);
         console.log(textesTraduits["client-deleted"] + clientActuel.id);
         return;
@@ -288,7 +336,7 @@ wss.on("connection", (client) => {
       //puis prendre la bonne "référence" de client dans la liste des clients de la partie -- then get the good client ref from the game's clients
       for (let i = 0; i < clientsDePartie.length; i++) {
         const clientActuel = clientsDePartie[i];
-        if(clientActuel.socket == client) {
+        if (clientActuel.socket == client) {
           clientsDePartie.splice(i, 1);
           console.log(textesTraduits["client-deleted"] + clientActuel.id);
           return;
@@ -317,9 +365,11 @@ wss.on("close", () => {
 process.on("exit", (code) => {
   //marquer le serveur comme fermé
   wss.close();
+  clients = [];
+  parties = [];
   //message de sortie
   console.log(
     textesTraduits["closed-server"] +
-      code
+    code
   );
 });
