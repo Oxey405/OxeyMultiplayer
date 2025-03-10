@@ -1,4 +1,12 @@
 # OxeyMultiplayer
+
+**CE PROJET EST MAINTENANT ARCHIVÉ -- PROJECT IS NOW ARCHIVED**
+Les ressources liées à ce projet étant maintenant plus disponibles et compte tenu des nouvelles ressources proposées par GDevelop, ce projet est archivé.
+Vous êtes néanmoins libre de faire un fork de ce dépot et de le continuer vous-même.
+
+The ressources linked to this project being unavailable and since GDevelop now proposes new resources for mulitplayer, this project has been archived.
+You are still free to fork this repository and continue working on it yourself.
+
 Un serveur multijoueur pour GDevelop fonctionnant avec WebSocket.
 Documentation en français après celle en anglais.
 A mutliplayer server for GDevelop powered by WebSocket.
