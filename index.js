@@ -57,9 +57,6 @@ class Message {
         angle: this.angle,
         inventaire: this.inventaire
       };
-      //return JSON.parse(
-      //  `{"id":${this.id}, "posX":${this.posX}, "posY":${this.posY}, "angle":${this.angle}, "inventaire":[${this.inventaire}]}`
-      //);
     } else {
       let newData = {};
       newData.id = this.id;
@@ -77,7 +74,6 @@ class Message {
         angle: this.angle,
         inventaire: this.inventaire
       });
-      //return `{"id":${this.id}, "posX":${this.posX}, "posY":${this.posY}, "angle":${this.angle}, "inventaire":[${this.inventaire}]}`;
     }
     else {
       let newData = {};
