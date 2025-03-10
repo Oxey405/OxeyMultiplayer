@@ -39,7 +39,7 @@ console.log(textesTraduits["language-announcement"] + language);
  */
 class Message {
   constructor(id, posX, posY, angle, inventaire, idPartie) {
-    this.id = id || "";
+    this.id = id;
     this.posX = posX;
     this.posY = posY;
     this.angle = angle;
